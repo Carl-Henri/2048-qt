@@ -121,6 +121,55 @@ ApplicationWindow {
                 perdu = true;  // Mettre à jour l'état si perdu
             }
         }
+
+
+        // Detection du swippe avec 2 doigts
+        MouseArea {
+                property bool wheelLocked: false  // Empêche l'appel multiple immédiat
+                property string lastMove: "None"  // si le même mouvement est répété
+
+                id: wheelHandler
+                anchors.fill: parent
+                // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
+                onWheel: function(event) {
+                    wheelLocked = true;
+                    delayTimer.restart();  // Démarre le délai
+
+                    if (event.angleDelta.y < 0) {  // Scrolling down
+                        if (lastMove == "Down" & wheelLocked) return;
+                        lastMove = "Down";
+                        if (monDamier.haut()) monDamier.suivant();
+                    } else if (event.angleDelta.y > 0) {  // Scrolling up
+                        if (lastMove == "Up" & wheelLocked) return;
+                        lastMove = "Up";
+                        if (monDamier.bas()) monDamier.suivant();
+                    }
+
+                    if (event.angleDelta.x < 0) {  // Scrolling right
+                        if (lastMove == "Right" & wheelLocked) return;
+                        lastMove = "Right";
+                        if (monDamier.gauche()) monDamier.suivant();
+                    } else if (event.angleDelta.x > 0) {  // Scrolling left
+                        if (lastMove == "Left" & wheelLocked) return;
+                        lastMove = "Left";
+                        if (monDamier.droite()) monDamier.suivant();
+                    }
+
+                    // Vérifier si la partie est perdue après chaque mouvement
+                    if (monDamier.perdu()) {
+                        perdu = true;  // Mettre à jour l'état si perdu
+                    }
+
+                    event.accepted = true;  // Prevent event propagation
+                }
+
+            Timer {
+                id: delayTimer
+                interval: 600  // Temps d'attente en millisecondes (400 ms)
+                onTriggered: parent.wheelLocked = false
+            }
+        }
+
     }
 
     // Menu pour choisir le mode de jeu
