@@ -1,11 +1,16 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include "damierdyn.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
+    DamierDyn Damier(4,4);
+
     QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("monDamier",&Damier);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,

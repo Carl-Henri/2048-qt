@@ -52,3 +52,17 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.qtc/package-manager/conan_provider.cmake
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.qtc/package-manager/LICENSE.conan
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmlcache/all_aotstats.aotstatslist
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmlcache/appProjet_2048_Main_qml.cpp
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmlcache/appProjet_2048_Main_qml.cpp.aotstats
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmlcache/appProjet_2048_qml_loader_file_list.rsp
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmlcache/appProjet_2048_qmlcache_loader.cpp
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmlcache/module_appProjet_2048.aotstatslist
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmllint/appProjet_2048.rsp
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmllint/appProjet_2048_json.rsp
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmllint/appProjet_2048_module.rsp
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/appProjet_2048.exe
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/appProjet_2048_autogen/deps
+build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/appProjet_2048_autogen/EWIEGA46WW/moc_damierdyn.cpp.d
