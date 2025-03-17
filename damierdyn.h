@@ -36,6 +36,9 @@ public:
     QVariantList getDeplacement() const {
         return m_deplacement;
     }
+    Q_INVOKABLE void emitTableChangee() {
+        emit tableChangee();
+    }
 
 
     friend ostream& operator<<(ostream& os, const DamierDyn& damier);

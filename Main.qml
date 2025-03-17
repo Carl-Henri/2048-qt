@@ -8,6 +8,8 @@ ApplicationWindow {
     title: "2048"
     property int tailleDamier: 4
     property bool perdu: false  // Ajout d'une propriété pour suivre l'état du jeu
+    property bool direction: true
+    property bool isVertical: false // Set this dynamically
 
     // Affichage du score
     Label {
@@ -79,9 +81,8 @@ ApplicationWindow {
         Connections {
             target: monDamier
             function onDeplace() {
-                // Process the movement animation when left movement occurs
+                // Process the movement animation when movement occurs
                 grille.animateMovement();
-                console.log(monDamier.deplacement)
             }
         }
 
@@ -111,27 +112,28 @@ ApplicationWindow {
             property int column: index % tailleDamier
             property point gridPosition: Qt.point(column, row)
 
+            z: direction ? -row-column : row+column // Non-empty tiles are always in front of empty ones
+
+
             // For animations and tracking
             property point previousPosition: gridPosition
-            property int newColumn: -1
+            property int newPosition: -1
 
             function updatePosition() {
                 // Only process for non-empty tiles
-                if (modelData !== 100) {
+                if (modelData !== 0) {
                     // Check if there's movement data for this tile
-                    if (row < monDamier.deplacement.length) {
-                        newColumn = monDamier.deplacement[column + row*tailleDamier];
 
-                            // If newColumn is valid and different from current column
-                            if (newColumn !== -1 && newColumn !== column) {
-                                // Start the animation
-                                console.log("newColumn:" + newColumn)
-                                console.log("Column:" + column)
-                                moveAnimation.start();
+                    newPosition = monDamier.deplacement[column + row*tailleDamier];
+
+                        // If newColumn is valid
+                        if (newPosition !== -1) {
+                            // Start the animation
+                            moveAnimation.start();
                         }
                     }
                 }
-            }
+
 
             function getColor() { return (modelData === 0 && "#cdc1b5") ||
                                   (modelData === 2 && "#eee4da") ||
@@ -151,10 +153,9 @@ ApplicationWindow {
                 id: vide
                 width: grille.cellWidth - 60/tailleDamier
                 height: grille.cellHeight - 60/tailleDamier
-                color: getColor()
+                color: "#cdc1b5"
                 radius: 14/tailleDamier
 
-                // Replace anchors.centerIn with x/y positioning
                 x: (parent.width - width) / 2
                 y: (parent.height - height) / 2
 
@@ -164,10 +165,10 @@ ApplicationWindow {
                 height: grille.cellHeight - 60/tailleDamier
                 color: getColor()
                 radius: 14/tailleDamier
-                //anchors.centerIn: parent
-                // Replace anchors.centerIn with x/y positioning
                 x: (parent.width - width) / 2
                 y: (parent.height - height) / 2
+                // Only show non-zero tiles
+                visible: modelData !== 0
 
                 Text {
                     anchors.centerIn: parent
@@ -181,32 +182,29 @@ ApplicationWindow {
                 ParallelAnimation {
                     id: moveAnimation
                 NumberAnimation {
-
                     target: tile
-                    property: "x"
+                    property: isVertical ? "y" : "x"
                     from: 0
-                    to: (cellBackground.newColumn - cellBackground.column) * grille.cellWidth // 30/tailleDamier
-                    duration: 950
+                    to: isVertical
+                        ? (cellBackground.newPosition - cellBackground.row) * grille.cellHeight
+                        : (cellBackground.newPosition - cellBackground.column) * grille.cellWidth
+                    duration: 200
                     easing.type: Easing.OutQuad
                     onStarted: {
                         console.log("Animation started with from: " + from + ", to: " + to);
                     }
                 }
 
-                    ColorAnimation {
-                        target: tile
-                        property: "color"
-                        from: tile.color
-                        to: "#ff0000"  // Red during animation
-                        duration: 2000
-                    }
-
-
                     onFinished: {
                         // Reset the x position after animation to ensure tiles stay in grid cells
-                        tile.x = 0 //(tile.parent.width - tile.width) / 2;
+                        if (isVertical) {
+                                   tile.y = 0;
+                               } else {
+                                   tile.x = 0;
+                               }
                         tile.color = getColor()
-                        console.log("end" + tile.x)
+
+                        Ondeplace: {monDamier.suivant();}
                     }
                 }
 
@@ -225,17 +223,24 @@ ApplicationWindow {
         Keys.onPressed: function(event) {
             switch (event.key) {
                 case Qt.Key_Up:
-                    if (monDamier.haut()) monDamier.suivant();
+                    monDamier.haut()
+                    direction = false
+                    isVertical= true
                     break;
                 case Qt.Key_Down:
-                    if (monDamier.bas()) monDamier.suivant();
+                    monDamier.bas()
+                    direction = true
+                    isVertical= true
                     break;
                 case Qt.Key_Left:
                     monDamier.gauche()
-                    if (monDamier.tableChangee()) monDamier.suivant();
+                    direction = false
+                    isVertical= false
                     break;
                 case Qt.Key_Right:
-                    if (monDamier.droite()) monDamier.suivant();
+                    monDamier.droite()
+                    direction = true
+                    isVertical= false
                     break;
                 default:
                     break;
@@ -259,28 +264,37 @@ ApplicationWindow {
                 anchors.fill: parent
                 // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
                 onWheel: function(event) {
-                    wheelLocked = true;
-                    delayTimer.restart();  // Démarre le délai
-
                     if (event.angleDelta.y < 0) {  // Scrolling down
-                        if (lastMove == "Down" & wheelLocked) return;
+                        if (lastMove === "Down" && wheelLocked) return;
                         lastMove = "Down";
-                        if (monDamier.haut()) monDamier.suivant();
+                        monDamier.bas()
+                        direction = true
+                        isVertical= true
+
                     } else if (event.angleDelta.y > 0) {  // Scrolling up
-                        if (lastMove == "Up" & wheelLocked) return;
+                        if (lastMove === "Up" && wheelLocked) return;
                         lastMove = "Up";
-                        if (monDamier.bas()) monDamier.suivant();
+                        monDamier.haut()
+                        direction = false
+                        isVertical= true
                     }
 
                     if (event.angleDelta.x < 0) {  // Scrolling right
-                        if (lastMove == "Right" & wheelLocked) return;
+                        if (lastMove === "Right" && wheelLocked) return;
                         lastMove = "Right";
-                        if (monDamier.gauche()) monDamier.suivant();
+                        monDamier.droite()
+                        direction = true
+                        isVertical= false
                     } else if (event.angleDelta.x > 0) {  // Scrolling left
-                        if (lastMove == "Left" & wheelLocked) return;
+                        if (lastMove === "Left" && wheelLocked) return;
                         lastMove = "Left";
-                        if (monDamier.droite()) monDamier.suivant();
+                        monDamier.gauche()
+                        direction = false
+                        isVertical= false
                     }
+
+                    wheelLocked = true;
+                    delayTimer.restart();  // Démarre le délai
 
                     // Vérifier si la partie est perdue après chaque mouvement
                     if (monDamier.perdu()) {
@@ -292,7 +306,7 @@ ApplicationWindow {
 
             Timer {
                 id: delayTimer
-                interval: 600  // Temps d'attente en millisecondes (400 ms)
+                interval: 500  // Temps d'attente en millisecondes (400 ms)
                 onTriggered: parent.wheelLocked = false
             }
         }
