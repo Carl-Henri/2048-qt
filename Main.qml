@@ -74,30 +74,154 @@ ApplicationWindow {
         cellWidth: width / tailleDamier
         cellHeight: width / tailleDamier
         model: monDamier.table
+        interactive: false // Disable scrolling
+
+        Connections {
+            target: monDamier
+            function onDeplace() {
+                // Process the movement animation when left movement occurs
+                grille.animateMovement();
+                console.log(monDamier.deplacement)
+            }
+        }
+
+
+        function animateMovement() {
+            // This will trigger the animations for each tile
+            for (var i = 0; i < tailleDamier; i++) {
+                for (var j = 0; j < tailleDamier; j++) {
+                    var tileIdx = i * tailleDamier + j;
+                    var tile = grille.itemAtIndex(tileIdx);
+                    if (tile) {
+                        tile.updatePosition();
+                    }
+                }
+            }
+        }
+
 
         delegate: Rectangle {
+            id: cellBackground
             width: grille.cellWidth
             height: grille.cellHeight
-            color:"#bbae9e"
+            color: "#bbae9e"
+
+            // Store position information
+            property int row: Math.floor(index / tailleDamier)
+            property int column: index % tailleDamier
+            property point gridPosition: Qt.point(column, row)
+
+            // For animations and tracking
+            property point previousPosition: gridPosition
+            property int newColumn: -1
+
+            function updatePosition() {
+                // Only process for non-empty tiles
+                if (modelData !== 100) {
+                    // Check if there's movement data for this tile
+                    if (row < monDamier.deplacement.length) {
+                        newColumn = monDamier.deplacement[column + row*tailleDamier];
+
+                            // If newColumn is valid and different from current column
+                            if (newColumn !== -1 && newColumn !== column) {
+                                // Start the animation
+                                console.log("newColumn:" + newColumn)
+                                console.log("Column:" + column)
+                                moveAnimation.start();
+                        }
+                    }
+                }
+            }
+
+            function getColor() { return (modelData === 0 && "#cdc1b5") ||
+                                  (modelData === 2 && "#eee4da") ||
+                                  (modelData === 4 && "#ece0c8") ||
+                                  (modelData === 8 && "#f2b179") ||
+                                  (modelData === 16 && "#f59563") ||
+                                  (modelData === 32 && "#f67c5f") ||
+                                  (modelData === 64 && "#f65e3b") ||
+                                  (modelData === 128 && "#edcf72") ||
+                                  (modelData === 256 && "#edcc61") ||
+                                  (modelData === 512 && "#edc850") ||
+                                  (modelData === 1024 && "#edc53f") ||
+                                  (modelData === 2048 && "#edc22e") ||
+                                  "#cdc1b4"}
+
             Rectangle {
+                id: vide
                 width: grille.cellWidth - 60/tailleDamier
                 height: grille.cellHeight - 60/tailleDamier
-                color: (modelData === 0 && "#cdc1b5") || (modelData === 2 && "#eee4da") || (modelData === 4 && "#ece0c8") || (modelData === 8 && "#f2b179") || (modelData === 16 && "#f59563") || (modelData === 32 && "#f67c5f") || (modelData === 64 && "#f65e3b") || (modelData === 128 && "#edcf72") || (modelData === 256 && "#edcc61") || (modelData === 512 && "#edc850") || (modelData === 1024 && "#edc53f") || (modelData === 2048 && "#edc22e") || "#cdc1b4"
+                color: getColor()
                 radius: 14/tailleDamier
-                anchors.centerIn:parent
+
+                // Replace anchors.centerIn with x/y positioning
+                x: (parent.width - width) / 2
+                y: (parent.height - height) / 2
+
+            Rectangle {
+                id: tile
+                width: grille.cellWidth - 60/tailleDamier
+                height: grille.cellHeight - 60/tailleDamier
+                color: getColor()
+                radius: 14/tailleDamier
+                //anchors.centerIn: parent
+                // Replace anchors.centerIn with x/y positioning
+                x: (parent.width - width) / 2
+                y: (parent.height - height) / 2
 
                 Text {
                     anchors.centerIn: parent
                     text: modelData !== 0 ? modelData : ""
                     font.pixelSize: 60*4/tailleDamier
                     font.weight: Font.Bold
-                    color: modelData === 2 || modelData === 4 ? "#766f65":"white"
+                    color: modelData === 2 || modelData === 4 ? "#766f65" : "white"
+                }
+
+                // Animation for tile movement
+                ParallelAnimation {
+                    id: moveAnimation
+                NumberAnimation {
+
+                    target: tile
+                    property: "x"
+                    from: 0
+                    to: (cellBackground.newColumn - cellBackground.column) * grille.cellWidth // 30/tailleDamier
+                    duration: 950
+                    easing.type: Easing.OutQuad
+                    onStarted: {
+                        console.log("Animation started with from: " + from + ", to: " + to);
+                    }
+                }
+
+                    ColorAnimation {
+                        target: tile
+                        property: "color"
+                        from: tile.color
+                        to: "#ff0000"  // Red during animation
+                        duration: 2000
+                    }
+
+
+                    onFinished: {
+                        // Reset the x position after animation to ensure tiles stay in grid cells
+                        tile.x = 0 //(tile.parent.width - tile.width) / 2;
+                        tile.color = getColor()
+                        console.log("end" + tile.x)
+                    }
+                }
+
+                // Animation d'apparition pour une nouvelle tuile
+                SequentialAnimation on scale {
+                    running: row === monDamier.lastAddedTile[0] && column === monDamier.lastAddedTile[1]
+                    NumberAnimation { from: 0; to: 1; duration: 150; easing.type: Easing.OutBounce }
                 }
             }
-        }
+        }}
+
 
         // Gestionnaire des actions clavier
         focus: true
+
         Keys.onPressed: function(event) {
             switch (event.key) {
                 case Qt.Key_Up:
@@ -107,7 +231,8 @@ ApplicationWindow {
                     if (monDamier.bas()) monDamier.suivant();
                     break;
                 case Qt.Key_Left:
-                    if (monDamier.gauche()) monDamier.suivant();
+                    monDamier.gauche()
+                    if (monDamier.tableChangee()) monDamier.suivant();
                     break;
                 case Qt.Key_Right:
                     if (monDamier.droite()) monDamier.suivant();
@@ -116,11 +241,13 @@ ApplicationWindow {
                     break;
             }
 
+
             // Vérifier si la partie est perdue après chaque mouvement
             if (monDamier.perdu()) {
                 perdu = true;  // Mettre à jour l'état si perdu
             }
         }
+
 
 
         // Detection du swippe avec 2 doigts

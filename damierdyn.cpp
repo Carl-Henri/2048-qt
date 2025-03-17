@@ -76,7 +76,18 @@ void DamierDyn::suivant() {
         j = distribCol(gen);
     } while (tab[i][j] != 0);
     tab[i][j] = val;
+
+    // Mise à jour des coordonnées de la dernière tuile ajoutée
+    lastAddedRow = i;
+    lastAddedCol = j;
+
+    // Notifier QML que la table et la dernière tuile ajoutée ont changé
     emit tableChangee();
+    emit lastAddedTileChange();
+}
+
+QVariantList DamierDyn::lireLastAddedTile() {
+    return QVariantList{lastAddedRow, lastAddedCol};
 }
 
 bool DamierDyn::bas() {
@@ -140,6 +151,8 @@ bool DamierDyn::haut() {
                 tab[nouvelle_pos][j] = tab[i][j];
                 tab[i][j] = 0;
                 modif = true;
+
+
             }
         }
 
@@ -151,16 +164,37 @@ bool DamierDyn::haut() {
 
 bool DamierDyn::gauche() {
     bool modif = false;
+    cout << "Deplacement:" << " ";
+    m_deplacement = QVariantList();
+
     for (int i = 0; i < nombre_lignes; i++) {
         bool* fusionne = new bool[nombre_colonnes]();
+        QVariantList ligneQML;
+
+        // Add the first column to the QML list
+        if (tab[i][0] == 0) {
+            ligneQML.append(QVariant(-1));
+            cout << 100<< " ";
+        } else {
+            ligneQML.append(QVariant(0));
+            cout << 100 << " ";
+        }
 
         for (int j = 1; j < nombre_colonnes; j++) {
-            if (tab[i][j] == 0) continue;
+
+            if (tab[i][j] == 0){
+                ligneQML.append(QVariant(-1));
+                cout << -1<< " ";
+                continue;}
 
             int nouvelle_pos = j;
             while (nouvelle_pos - 1 >= 0 && tab[i][nouvelle_pos - 1] == 0) {
                 nouvelle_pos--;
             }
+            cout  << nouvelle_pos<< " ";
+
+            //cout << "DEBUG: " << i << "," << j << " moved to " << nouvelle_pos << endl;
+            ligneQML.append(QVariant(nouvelle_pos));
 
             if (nouvelle_pos - 1 >= 0 && tab[i][nouvelle_pos - 1] == tab[i][j] && !fusionne[nouvelle_pos - 1]) {
                 tab[i][nouvelle_pos - 1] *= 2;
@@ -176,10 +210,18 @@ bool DamierDyn::gauche() {
                 modif = true;
             }
         }
+        m_deplacement.append(ligneQML);
         delete[] fusionne;
+
     }
-    if (modif) emit tableChangee();
+    cout << endl;
+    if (modif) {
+        //emit tableChangee();
+        emit deplace();
+    }
+
     return(modif);
+
 }
 
 bool DamierDyn::droite() {
