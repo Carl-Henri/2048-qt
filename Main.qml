@@ -281,7 +281,7 @@ ApplicationWindow {
 
                 // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
                 onWheel: function(event) {if (!grille.isLocked){
-                    if (event.angleDelta.y < 0) {  // Scrolling down
+                    if (event.angleDelta.y > 0) {  // Scrolling down
                         if (lastMove === "Down" && wheelLocked) return;
                         lastMove = "Down";
                         monDamier.bas()
@@ -289,7 +289,7 @@ ApplicationWindow {
                         isVertical= true
                         retour_possible = true
 
-                    } else if (event.angleDelta.y > 0) {  // Scrolling up
+                    } else if (event.angleDelta.y < 0) {  // Scrolling up
                         if (lastMove === "Up" && wheelLocked) return;
                         lastMove = "Up";
                         monDamier.haut()
@@ -299,7 +299,7 @@ ApplicationWindow {
 
                     }
 
-                    if (event.angleDelta.x < 0) {  // Scrolling right
+                    if (event.angleDelta.x > 0) {  // Scrolling right
                         if (lastMove === "Right" && wheelLocked) return;
                         lastMove = "Right";
                         monDamier.droite()
@@ -307,7 +307,7 @@ ApplicationWindow {
                         isVertical= false
                         retour_possible = true
 
-                    } else if (event.angleDelta.x > 0) {  // Scrolling left
+                    } else if (event.angleDelta.x < 0) {  // Scrolling left
                         if (lastMove === "Left" && wheelLocked) return;
                         lastMove = "Left";
                         monDamier.gauche()
