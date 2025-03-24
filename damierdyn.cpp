@@ -372,6 +372,13 @@ void DamierDyn::redim(int n,int m) {
         tab = 0;
     }
 
+    if (precedent_tab !=0) {
+        for (int i=0;i<nombre_lignes;i++)
+            delete [] precedent_tab[i];
+        delete [] precedent_tab;
+        precedent_tab = 0;
+    }
+
     nombre_lignes = n;
     nombre_colonnes = m;
 

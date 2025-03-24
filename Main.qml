@@ -333,7 +333,7 @@ ApplicationWindow {
 
                 Timer {
                     id: delayTimer_Wheel
-                    interval: 500  // Temps d'attente en millisecondes
+                    interval: 800  // Temps d'attente en millisecondes
                     onTriggered: wheelHandler.wheelLocked = false
                     }
 
@@ -346,6 +346,7 @@ ApplicationWindow {
         }
 
     }
+
 
     // Menu pour choisir le mode de jeu
     Menu {
@@ -377,6 +378,7 @@ ApplicationWindow {
                         monDamier.redim(tailleDamier, tailleDamier);
                         monDamier.reinitialiser();
                         modeMenu.close();  // Ferme le menu après la sélection
+                        retour_possible = false;
                     }
                 }
             }
