@@ -287,6 +287,7 @@ ApplicationWindow {
                         monDamier.bas()
                         direction = true
                         isVertical= true
+                        retour_possible = true
 
                     } else if (event.angleDelta.y > 0) {  // Scrolling up
                         if (lastMove === "Up" && wheelLocked) return;
@@ -294,6 +295,8 @@ ApplicationWindow {
                         monDamier.haut()
                         direction = false
                         isVertical= true
+                        retour_possible = true
+
                     }
 
                     if (event.angleDelta.x < 0) {  // Scrolling right
@@ -302,12 +305,16 @@ ApplicationWindow {
                         monDamier.droite()
                         direction = true
                         isVertical= false
+                        retour_possible = true
+
                     } else if (event.angleDelta.x > 0) {  // Scrolling left
                         if (lastMove === "Left" && wheelLocked) return;
                         lastMove = "Left";
                         monDamier.gauche()
                         direction = false
                         isVertical= false
+                        retour_possible = true
+
                     }
                     wheelLocked = true;
                     delayTimer_Wheel.restart();  // Démarre le délai
