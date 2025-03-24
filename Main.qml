@@ -55,6 +55,7 @@ ApplicationWindow {
                 onClicked: {
                     monDamier.reinitialiser();  // Fonction à définir dans DamierDyn pour réinitialiser
                     perdu = false
+                    retour_possible = false
                     grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
                 }
             }

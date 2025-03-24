@@ -12,13 +12,6 @@ DamierDyn::DamierDyn(int n, int m, int val1, int val2) {
     Init(val1, val2);
 }
 
-DamierDyn::DamierDyn(const DamierDyn &D) {
-    redim(D.nombre_lignes,D.nombre_colonnes);
-    for (int i=0;i<nombre_lignes;i++)
-        for (int j=0;j<nombre_colonnes;j++)
-            tab[i][j] = D.tab[i][j];
-}
-
 void DamierDyn::Init(int val1, int val2) {
 
     random_device rd;

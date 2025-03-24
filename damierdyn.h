@@ -44,7 +44,6 @@ public:
 
     friend ostream& operator<<(ostream& os, const DamierDyn& damier);
 
-    DamierDyn(const DamierDyn &D);
     void Set(int i, int j, int val);
     DamierDyn& operator=(const DamierDyn& D);
 
