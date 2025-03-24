@@ -281,7 +281,7 @@ ApplicationWindow {
                         perdu = true;  // Mettre à jour l'état si perdu
                     }
 
-                    event.accepted = true;  // Prevent event propagation
+                    event.accepted = true;  // Empeche la propagation de l'event
                 }}
         }
 
