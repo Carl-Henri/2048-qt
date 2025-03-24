@@ -273,39 +273,48 @@ ApplicationWindow {
         }
 
         // Detection du swippe avec 2 doigts
-        MouseArea {            
-                id: wheelHandler
-                anchors.fill: parent
+        MouseArea {
+            id: wheelHandler
+            anchors.fill: parent
+            property bool wheelLocked: false  // Empêche l'appel multiple immédiat
+            property string lastMove: "None"  // si le même mouvement est répété
+
                 // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
                 onWheel: function(event) {if (!grille.isLocked){
-                    if (event.angleDelta.y > 0) {  // Scrolling down
+                    if (event.angleDelta.y < 0) {  // Scrolling down
+                        if (lastMove === "Down" && wheelLocked) return;
+                        lastMove = "Down";
                         monDamier.bas()
                         direction = true
                         isVertical= true
-                        retour_possible = true
 
-                    } else if (event.angleDelta.y < 0) {  // Scrolling up
+                    } else if (event.angleDelta.y > 0) {  // Scrolling up
+                        if (lastMove === "Up" && wheelLocked) return;
+                        lastMove = "Up";
                         monDamier.haut()
                         direction = false
                         isVertical= true
-                        retour_possible = true
                     }
 
-                    if (event.angleDelta.x > 0) {  // Scrolling right
+                    if (event.angleDelta.x < 0) {  // Scrolling right
+                        if (lastMove === "Right" && wheelLocked) return;
+                        lastMove = "Right";
                         monDamier.droite()
                         direction = true
                         isVertical= false
-                        retour_possible = true
-
-                    } else if (event.angleDelta.x < 0) {  // Scrolling left
+                    } else if (event.angleDelta.x > 0) {  // Scrolling left
+                        if (lastMove === "Left" && wheelLocked) return;
+                        lastMove = "Left";
                         monDamier.gauche()
                         direction = false
                         isVertical= false
-                        retour_possible = true
                     }
+                    wheelLocked = true;
+                    delayTimer_Wheel.restart();  // Démarre le délai
 
                     grille.isLocked = true;
                     delayTimer.restart();  // Démarre le délai
+                    }
 
                     // Vérifier si la partie est perdue après chaque mouvement
                     if (monDamier.perdu()) {
@@ -313,7 +322,14 @@ ApplicationWindow {
                     }
 
                     event.accepted = true;  // Empeche la propagation de l'event
-                }}
+                }
+
+                Timer {
+                    id: delayTimer_Wheel
+                    interval: 500  // Temps d'attente en millisecondes
+                    onTriggered: wheelHandler.wheelLocked = false
+                    }
+
         }
 
         Timer {
