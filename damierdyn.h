@@ -24,10 +24,11 @@ public:
     Q_INVOKABLE bool gauche();
     Q_INVOKABLE bool droite();
     Q_INVOKABLE bool perdu();
+    void sauvegarde();
+    Q_INVOKABLE void retour_arriere();
     ~DamierDyn();
     QVariantList lireTable();
     QString lireScore();
-
 
     friend ostream& operator<<(ostream& os, const DamierDyn& damier);
 
@@ -40,10 +41,13 @@ private:
     int nombre_colonnes;
     int score = 0;
     int** tab = 0;
+    int** precedent_tab = 0;
+    int precedent_score = 0;
 
 signals:
     void tableChangee();
     void scoreChange();
+    void retourArrierePossChange();
 };
 
 #endif // DAMIERDYN_H

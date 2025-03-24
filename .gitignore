@@ -52,6 +52,7 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+build
 build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.qtc/package-manager/conan_provider.cmake
 build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.qtc/package-manager/LICENSE.conan
 build/Desktop_Qt_6_8_2_MinGW_64_bit-Debug/.rcc/qmlcache/all_aotstats.aotstatslist

@@ -38,7 +38,7 @@ ApplicationWindow {
         // Bouton de redémarrage
         Button {
             text: "Redémarrer"
-            width: parent.width / 2 - 10
+            width: parent.width / 3 - 10
             height: buttonRow.height - 20
             anchors.verticalCenter: parent.verticalCenter
             font.pixelSize: 18
@@ -49,11 +49,25 @@ ApplicationWindow {
             }
         }
 
+        Button {
+            text: "Retour arrière"
+            width: parent.width / 3 - 10
+            height: buttonRow.height - 20
+            anchors.verticalCenter: parent.verticalCenter
+            font.pixelSize: 18
+            enabled: monDamier.ret_arr_poss
+            onClicked: {
+                monDamier.retour_arriere();  // Fonction à définir dans DamierDyn pour réinitialiser
+                perdu = false
+                grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+            }
+        }
+
         // Bouton pour choisir le mode de jeu
         Button {
             id: modeButton
             text: "Choisir le mode"
-            width: parent.width / 2 - 10
+            width: parent.width / 3 - 10
             height: buttonRow.height - 20
             anchors.verticalCenter: parent.verticalCenter
             font.pixelSize: 18

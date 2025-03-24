@@ -81,6 +81,7 @@ void DamierDyn::suivant() {
 
 bool DamierDyn::bas() {
     bool modif = false;
+    sauvegarde();
     for (int j = 0; j < nombre_colonnes; j++) {
         bool* fusionne = new bool[nombre_lignes]();
 
@@ -115,6 +116,7 @@ bool DamierDyn::bas() {
 
 bool DamierDyn::haut() {
     bool modif = false;
+    sauvegarde();
     for (int j = 0; j < nombre_colonnes; j++) {
         bool* fusionne = new bool[nombre_lignes](); // Suivi des fusions
 
@@ -151,6 +153,7 @@ bool DamierDyn::haut() {
 
 bool DamierDyn::gauche() {
     bool modif = false;
+    sauvegarde();
     for (int i = 0; i < nombre_lignes; i++) {
         bool* fusionne = new bool[nombre_colonnes]();
 
@@ -184,6 +187,7 @@ bool DamierDyn::gauche() {
 
 bool DamierDyn::droite() {
     bool modif = false;
+    sauvegarde();
     for (int i = 0; i < nombre_lignes; i++) {
         bool* fusionne = new bool[nombre_colonnes]();
 
@@ -255,6 +259,19 @@ QVariantList DamierDyn::lireTable() {
     return res;
 }
 
+void DamierDyn::retour_arriere() {
+    if (precedent_tab != 0) {
+        for (int i = 0; i<nombre_lignes;i++) {
+            for (int j = 0; j<nombre_colonnes;j++) {
+                    tab[i][j] = precedent_tab[i][j];
+            }
+        }
+        score = precedent_score;
+        emit tableChangee();
+        emit scoreChange();
+    }
+}
+
 QString DamierDyn::lireScore() {
     QString res = QString::number(score);
     return(res);
@@ -285,6 +302,24 @@ void DamierDyn::redim(int n,int m) {
     for (int i=0;i<nombre_lignes;i++) {
         tab[i] = new int[nombre_colonnes];
     };
+}
+
+void DamierDyn::sauvegarde() {
+    if (precedent_tab !=0) {
+        for (int i=0;i<nombre_lignes;i++)
+            delete [] precedent_tab[i];
+        delete [] precedent_tab;
+        precedent_tab = 0;
+    }
+
+    precedent_tab = new int*[nombre_lignes];
+    for (int i=0;i<nombre_lignes;i++) {
+        precedent_tab[i] = new int[nombre_colonnes];
+    };
+    for (int i=0;i<nombre_lignes;i++)
+        for (int j=0;j<nombre_colonnes;j++)
+            precedent_tab[i][j] = tab[i][j];
+    precedent_score = score;
 }
 
 
