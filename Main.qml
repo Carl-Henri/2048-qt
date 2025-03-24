@@ -12,6 +12,7 @@ ApplicationWindow {
     property bool direction: true
     property bool isVertical: false
     property bool locked: false
+    property bool retour_possible: false
 
     // Affichage du score
     Label {
@@ -31,53 +32,60 @@ ApplicationWindow {
     }
 
     // Conteneur pour aligner les boutons
-    Row {
-        id: buttonRow
-        anchors.top: scoreLabel.bottom
+    Rectangle {
+        id:buttonRow
+        color: "#faf8ef"
         anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 20
-        width: parent.width - 40 // Laisser un espace de marge de chaque côté
+        width: parent.width
         height: 60 // Hauteur des boutons
-
-        // Bouton de redémarrage
-        Button {
-            text: "Redémarrer"
-            width: parent.width / 3 - 10
-            height: buttonRow.height - 20
-            anchors.verticalCenter: parent.verticalCenter
-            font.pixelSize: 18
-            onClicked: {
-                monDamier.reinitialiser();  // Fonction à définir dans DamierDyn pour réinitialiser
-                perdu = false
-                grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+        anchors.top: scoreLabel.bottom
+        Row {
+            spacing: 20
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.centerIn: parent
+            width: parent.width - 40
+            // Bouton de redémarrage
+            Button {
+                text: "Redémarrer"
+                width: parent.width / 3 - 10
+                height: buttonRow.height - 20
+                anchors.verticalCenter: parent.verticalCenter
+                font.pixelSize: 18
+                onClicked: {
+                    monDamier.reinitialiser();  // Fonction à définir dans DamierDyn pour réinitialiser
+                    perdu = false
+                    grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+                }
             }
-        }
 
-        Button {
-            text: "Retour arrière"
-            width: parent.width / 3 - 10
-            height: buttonRow.height - 20
-            anchors.verticalCenter: parent.verticalCenter
-            font.pixelSize: 18
-            enabled: monDamier.ret_arr_poss
-            onClicked: {
-                monDamier.retour_arriere();  // Fonction à définir dans DamierDyn pour réinitialiser
-                perdu = false
-                grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+            Button {
+                text: "Retour arrière"
+                width: parent.width / 3 - 10
+                height: buttonRow.height - 20
+                anchors.verticalCenter: parent.verticalCenter
+                font.pixelSize: 18
+                enabled: retour_possible
+                onClicked: {
+                    monDamier.retour_arriere();  // Fonction à définir dans DamierDyn pour réinitialiser
+                    perdu = false
+                    grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+                    retour_possible = false;
+                }
             }
-        }
 
-        // Bouton pour choisir le mode de jeu
-        Button {
-            id: modeButton
-            text: "Choisir le mode"
-            width: parent.width / 3 - 10
-            height: buttonRow.height - 20
-            anchors.verticalCenter: parent.verticalCenter
-            font.pixelSize: 18
-            onClicked: {
-                modeMenu.open(); // Afficher le menu pour choisir le mode de jeu
-                grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+            // Bouton pour choisir le mode de jeu
+            Button {
+                id: modeButton
+                text: "Choisir le mode"
+                width: parent.width / 3 - 10
+                height: buttonRow.height - 20
+                anchors.verticalCenter: parent.verticalCenter
+                font.pixelSize: 18
+                onClicked: {
+                    modeMenu.open(); // Afficher le menu pour choisir le mode de jeu
+                    grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+                }
             }
         }
     }
@@ -229,21 +237,25 @@ ApplicationWindow {
                     monDamier.haut()
                     direction = false
                     isVertical= true
+                    retour_possible = true
                     break;
                 case Qt.Key_Down:
                     monDamier.bas()
                     direction = true
                     isVertical= true
+                    retour_possible = true
                     break;
                 case Qt.Key_Left:
                     monDamier.gauche()
                     direction = false
                     isVertical= false
+                    retour_possible = true
                     break;
                 case Qt.Key_Right:
                     monDamier.droite()
                     direction = true
                     isVertical= false
+                    retour_possible = true
                     break;
                 default:
                     break;
@@ -270,22 +282,26 @@ ApplicationWindow {
                         monDamier.bas()
                         direction = true
                         isVertical= true
+                        retour_possible = true
 
                     } else if (event.angleDelta.y < 0) {  // Scrolling up
                         monDamier.haut()
                         direction = false
                         isVertical= true
+                        retour_possible = true
                     }
 
                     if (event.angleDelta.x > 0) {  // Scrolling right
                         monDamier.droite()
                         direction = true
                         isVertical= false
+                        retour_possible = true
 
                     } else if (event.angleDelta.x < 0) {  // Scrolling left
                         monDamier.gauche()
                         direction = false
                         isVertical= false
+                        retour_possible = true
                     }
 
                     grille.isLocked = true;
