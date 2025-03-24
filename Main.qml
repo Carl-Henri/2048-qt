@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 ApplicationWindow {
+    id: root
     visible: true
     width: 600
     height: 700
@@ -9,7 +10,8 @@ ApplicationWindow {
     property int tailleDamier: 4
     property bool perdu: false  // Ajout d'une propriété pour suivre l'état du jeu
     property bool direction: true
-    property bool isVertical: false // Set this dynamically
+    property bool isVertical: false
+    property bool locked: false
 
     // Affichage du score
     Label {
@@ -76,19 +78,19 @@ ApplicationWindow {
         cellWidth: width / tailleDamier
         cellHeight: width / tailleDamier
         model: monDamier.table
-        interactive: false // Disable scrolling
+        property bool isLocked: false  // Empêche l'appel multiple immédiat
+
 
         Connections {
             target: monDamier
             function onDeplace() {
-                // Process the movement animation when movement occurs
                 grille.animateMovement();
             }
         }
 
 
         function animateMovement() {
-            // This will trigger the animations for each tile
+            // Lance l'animation pour chaque tuille
             for (var i = 0; i < tailleDamier; i++) {
                 for (var j = 0; j < tailleDamier; j++) {
                     var tileIdx = i * tailleDamier + j;
@@ -112,23 +114,20 @@ ApplicationWindow {
             property int column: index % tailleDamier
             property point gridPosition: Qt.point(column, row)
 
-            z: direction ? -row-column : row+column // Non-empty tiles are always in front of empty ones
+            z: direction ? -row-column : row+column // Les tuilles affichées devant changent selon la direction de l'action
 
 
-            // For animations and tracking
-            property point previousPosition: gridPosition
+            // Pour l'animation
             property int newPosition: -1
 
             function updatePosition() {
-                // Only process for non-empty tiles
+                // On ne s'interresse qu'aux tuilles non vides
                 if (modelData !== 0) {
-                    // Check if there's movement data for this tile
-
+                    // On récupère la nouvelle position de la tuille
                     newPosition = monDamier.deplacement[column + row*tailleDamier];
-
-                        // If newColumn is valid
+                        // Si newColumn est valide
                         if (newPosition !== -1) {
-                            // Start the animation
+                            // On lance l'animation
                             moveAnimation.start();
                         }
                     }
@@ -167,7 +166,7 @@ ApplicationWindow {
                 radius: 14/tailleDamier
                 x: (parent.width - width) / 2
                 y: (parent.height - height) / 2
-                // Only show non-zero tiles
+                // On affiche que les tuilles non vides
                 visible: modelData !== 0
 
                 Text {
@@ -178,7 +177,7 @@ ApplicationWindow {
                     color: modelData === 2 || modelData === 4 ? "#766f65" : "white"
                 }
 
-                // Animation for tile movement
+                // Animation
                 ParallelAnimation {
                     id: moveAnimation
                 NumberAnimation {
@@ -190,21 +189,10 @@ ApplicationWindow {
                         : (cellBackground.newPosition - cellBackground.column) * grille.cellWidth
                     duration: 200
                     easing.type: Easing.OutQuad
-                    onStarted: {
-                        console.log("Animation started with from: " + from + ", to: " + to);
-                    }
                 }
 
                     onFinished: {
-                        // Reset the x position after animation to ensure tiles stay in grid cells
-                        if (isVertical) {
-                                   tile.y = 0;
-                               } else {
-                                   tile.x = 0;
-                               }
-                        tile.color = getColor()
-
-                        Ondeplace: {monDamier.suivant();}
+                        monDamier.suivant()
                     }
                 }
 
@@ -221,6 +209,7 @@ ApplicationWindow {
         focus: true
 
         Keys.onPressed: function(event) {
+            if (!grille.isLocked){
             switch (event.key) {
                 case Qt.Key_Up:
                     monDamier.haut()
@@ -245,6 +234,10 @@ ApplicationWindow {
                 default:
                     break;
             }
+            grille.isLocked = true
+            delayTimer.restart()  // Démarre le délai
+
+            }
 
 
             // Vérifier si la partie est perdue après chaque mouvement
@@ -253,47 +246,34 @@ ApplicationWindow {
             }
         }
 
-
-
         // Detection du swippe avec 2 doigts
-        MouseArea {
-                property bool wheelLocked: false  // Empêche l'appel multiple immédiat
-                property string lastMove: "None"  // si le même mouvement est répété
-
+        MouseArea {            
                 id: wheelHandler
                 anchors.fill: parent
                 // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
-                onWheel: function(event) {
+                onWheel: function(event) {if (!grille.isLocked){
                     if (event.angleDelta.y < 0) {  // Scrolling down
-                        if (lastMove === "Down" && wheelLocked) return;
-                        lastMove = "Down";
                         monDamier.bas()
                         direction = true
                         isVertical= true
 
                     } else if (event.angleDelta.y > 0) {  // Scrolling up
-                        if (lastMove === "Up" && wheelLocked) return;
-                        lastMove = "Up";
                         monDamier.haut()
                         direction = false
                         isVertical= true
                     }
 
                     if (event.angleDelta.x < 0) {  // Scrolling right
-                        if (lastMove === "Right" && wheelLocked) return;
-                        lastMove = "Right";
                         monDamier.droite()
                         direction = true
                         isVertical= false
                     } else if (event.angleDelta.x > 0) {  // Scrolling left
-                        if (lastMove === "Left" && wheelLocked) return;
-                        lastMove = "Left";
                         monDamier.gauche()
                         direction = false
                         isVertical= false
                     }
 
-                    wheelLocked = true;
+                    grille.isLocked = true;
                     delayTimer.restart();  // Démarre le délai
 
                     // Vérifier si la partie est perdue après chaque mouvement
@@ -302,13 +282,13 @@ ApplicationWindow {
                     }
 
                     event.accepted = true;  // Prevent event propagation
-                }
+                }}
+        }
 
-            Timer {
-                id: delayTimer
-                interval: 500  // Temps d'attente en millisecondes (400 ms)
-                onTriggered: parent.wheelLocked = false
-            }
+        Timer {
+            id: delayTimer
+            interval: 200  // Temps d'attente en millisecondes
+            onTriggered: grille.isLocked = false
         }
 
     }

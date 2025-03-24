@@ -101,7 +101,7 @@ bool DamierDyn::bas() {
         if (tab[(nombre_lignes-1)][j] == 0) {
             m_deplacement[(nombre_lignes - 1)*nombre_lignes+j] = QVariant(-1);
         } else {
-            m_deplacement[(nombre_lignes - 1)*nombre_lignes+j] = QVariant(3);
+            m_deplacement[(nombre_lignes - 1)*nombre_lignes+j] = QVariant(nombre_lignes-1);
         }
 
         for (int i = nombre_lignes - 2; i >= 0; i--) {
@@ -283,7 +283,7 @@ bool DamierDyn::droite() {
         if (tab[i][nombre_colonnes-1] == 0) {
             ligneQML[nombre_colonnes-1] = QVariant(-1);
         } else {
-            ligneQML[nombre_colonnes-1] = QVariant(3);
+            ligneQML[nombre_colonnes-1] = QVariant(nombre_colonnes-1);
         }
         m_deplacement.append(ligneQML);
         delete[] fusionne;
