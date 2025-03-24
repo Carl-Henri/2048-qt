@@ -10,7 +10,12 @@ using namespace std;
 class DamierDyn : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList table READ lireTable NOTIFY tableChangee() )
+    Q_PROPERTY(QVariantList deplacement READ getDeplacement NOTIFY deplace )
     Q_PROPERTY(QString scoreQML READ lireScore NOTIFY scoreChange() )
+    Q_PROPERTY(QVariantList lastAddedTile READ lireLastAddedTile NOTIFY lastAddedTileChange())
+
+
+
 
 public:
 
@@ -29,6 +34,13 @@ public:
     ~DamierDyn();
     QVariantList lireTable();
     QString lireScore();
+    QVariantList lireLastAddedTile();
+    QVariantList getDeplacement() const {
+        return m_deplacement;
+    }
+    Q_INVOKABLE void emitTableChangee() {
+        emit tableChangee();
+    }
 
     friend ostream& operator<<(ostream& os, const DamierDyn& damier);
 
@@ -37,6 +49,10 @@ public:
     DamierDyn& operator=(const DamierDyn& D);
 
 private:
+    int lastAddedRow = -1;
+    int lastAddedCol = -1;
+    QVariantList m_deplacement = QVariantList(); // Enregistre les mouvements
+
     int nombre_lignes;
     int nombre_colonnes;
     int score = 0;
@@ -45,9 +61,11 @@ private:
     int precedent_score = 0;
 
 signals:
+    void deplace();
     void tableChangee();
     void scoreChange();
     void retourArrierePossChange();
+    void lastAddedTileChange();
 };
 
 #endif // DAMIERDYN_H

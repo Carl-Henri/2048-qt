@@ -2,12 +2,16 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 ApplicationWindow {
+    id: root
     visible: true
     width: 600
     height: 700
     title: "2048"
     property int tailleDamier: 4
     property bool perdu: false  // Ajout d'une propriété pour suivre l'état du jeu
+    property bool direction: true
+    property bool isVertical: false
+    property bool locked: false
 
     // Affichage du score
     Label {
@@ -88,47 +92,167 @@ ApplicationWindow {
         cellWidth: width / tailleDamier
         cellHeight: width / tailleDamier
         model: monDamier.table
+        property bool isLocked: false  // Empêche l'appel multiple immédiat
+
+
+        Connections {
+            target: monDamier
+            function onDeplace() {
+                grille.animateMovement();
+            }
+        }
+
+
+        function animateMovement() {
+            // Lance l'animation pour chaque tuille
+            for (var i = 0; i < tailleDamier; i++) {
+                for (var j = 0; j < tailleDamier; j++) {
+                    var tileIdx = i * tailleDamier + j;
+                    var tile = grille.itemAtIndex(tileIdx);
+                    if (tile) {
+                        tile.updatePosition();
+                    }
+                }
+            }
+        }
+
 
         delegate: Rectangle {
+            id: cellBackground
             width: grille.cellWidth
             height: grille.cellHeight
-            color:"#bbae9e"
+            color: "#bbae9e"
+
+            // Store position information
+            property int row: Math.floor(index / tailleDamier)
+            property int column: index % tailleDamier
+            property point gridPosition: Qt.point(column, row)
+
+            z: direction ? -row-column : row+column // Les tuilles affichées devant changent selon la direction de l'action
+
+
+            // Pour l'animation
+            property int newPosition: -1
+
+            function updatePosition() {
+                // On ne s'interresse qu'aux tuilles non vides
+                if (modelData !== 0) {
+                    // On récupère la nouvelle position de la tuille
+                    newPosition = monDamier.deplacement[column + row*tailleDamier];
+                        // Si newColumn est valide
+                        if (newPosition !== -1) {
+                            // On lance l'animation
+                            moveAnimation.start();
+                        }
+                    }
+                }
+
+
+            function getColor() { return (modelData === 0 && "#cdc1b5") ||
+                                  (modelData === 2 && "#eee4da") ||
+                                  (modelData === 4 && "#ece0c8") ||
+                                  (modelData === 8 && "#f2b179") ||
+                                  (modelData === 16 && "#f59563") ||
+                                  (modelData === 32 && "#f67c5f") ||
+                                  (modelData === 64 && "#f65e3b") ||
+                                  (modelData === 128 && "#edcf72") ||
+                                  (modelData === 256 && "#edcc61") ||
+                                  (modelData === 512 && "#edc850") ||
+                                  (modelData === 1024 && "#edc53f") ||
+                                  (modelData === 2048 && "#edc22e") ||
+                                  "#cdc1b4"}
+
             Rectangle {
+                id: vide
                 width: grille.cellWidth - 60/tailleDamier
                 height: grille.cellHeight - 60/tailleDamier
-                color: (modelData === 0 && "#cdc1b5") || (modelData === 2 && "#eee4da") || (modelData === 4 && "#ece0c8") || (modelData === 8 && "#f2b179") || (modelData === 16 && "#f59563") || (modelData === 32 && "#f67c5f") || (modelData === 64 && "#f65e3b") || (modelData === 128 && "#edcf72") || (modelData === 256 && "#edcc61") || (modelData === 512 && "#edc850") || (modelData === 1024 && "#edc53f") || (modelData === 2048 && "#edc22e") || "#cdc1b4"
+                color: "#cdc1b5"
                 radius: 14/tailleDamier
-                anchors.centerIn:parent
+
+                x: (parent.width - width) / 2
+                y: (parent.height - height) / 2
+
+            Rectangle {
+                id: tile
+                width: grille.cellWidth - 60/tailleDamier
+                height: grille.cellHeight - 60/tailleDamier
+                color: getColor()
+                radius: 14/tailleDamier
+                x: (parent.width - width) / 2
+                y: (parent.height - height) / 2
+                // On affiche que les tuilles non vides
+                visible: modelData !== 0
 
                 Text {
                     anchors.centerIn: parent
                     text: modelData !== 0 ? modelData : ""
                     font.pixelSize: 60*4/tailleDamier
                     font.weight: Font.Bold
-                    color: modelData === 2 || modelData === 4 ? "#766f65":"white"
+                    color: modelData === 2 || modelData === 4 ? "#766f65" : "white"
+                }
+
+                // Animation
+                ParallelAnimation {
+                    id: moveAnimation
+                NumberAnimation {
+                    target: tile
+                    property: isVertical ? "y" : "x"
+                    from: 0
+                    to: isVertical
+                        ? (cellBackground.newPosition - cellBackground.row) * grille.cellHeight
+                        : (cellBackground.newPosition - cellBackground.column) * grille.cellWidth
+                    duration: 200
+                    easing.type: Easing.OutQuad
+                }
+
+                    onFinished: {
+                        monDamier.suivant()
+                    }
+                }
+
+                // Animation d'apparition pour une nouvelle tuile
+                SequentialAnimation on scale {
+                    running: row === monDamier.lastAddedTile[0] && column === monDamier.lastAddedTile[1]
+                    NumberAnimation { from: 0; to: 1; duration: 150; easing.type: Easing.OutBounce }
                 }
             }
-        }
+        }}
+
 
         // Gestionnaire des actions clavier
         focus: true
+
         Keys.onPressed: function(event) {
+            if (!grille.isLocked){
             switch (event.key) {
                 case Qt.Key_Up:
-                    if (monDamier.haut()) monDamier.suivant();
+                    monDamier.haut()
+                    direction = false
+                    isVertical= true
                     break;
                 case Qt.Key_Down:
-                    if (monDamier.bas()) monDamier.suivant();
+                    monDamier.bas()
+                    direction = true
+                    isVertical= true
                     break;
                 case Qt.Key_Left:
-                    if (monDamier.gauche()) monDamier.suivant();
+                    monDamier.gauche()
+                    direction = false
+                    isVertical= false
                     break;
                 case Qt.Key_Right:
-                    if (monDamier.droite()) monDamier.suivant();
+                    monDamier.droite()
+                    direction = true
+                    isVertical= false
                     break;
                 default:
                     break;
             }
+            grille.isLocked = true
+            delayTimer.restart()  // Démarre le délai
+
+            }
+
 
             // Vérifier si la partie est perdue après chaque mouvement
             if (monDamier.perdu()) {
@@ -136,52 +260,49 @@ ApplicationWindow {
             }
         }
 
-
         // Detection du swippe avec 2 doigts
-        MouseArea {
-                property bool wheelLocked: false  // Empêche l'appel multiple immédiat
-                property string lastMove: "None"  // si le même mouvement est répété
-
+        MouseArea {            
                 id: wheelHandler
                 anchors.fill: parent
                 // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
-                onWheel: function(event) {
-                    wheelLocked = true;
-                    delayTimer.restart();  // Démarre le délai
-
+                onWheel: function(event) {if (!grille.isLocked){
                     if (event.angleDelta.y < 0) {  // Scrolling down
-                        if (lastMove == "Down" & wheelLocked) return;
-                        lastMove = "Down";
-                        if (monDamier.haut()) monDamier.suivant();
+                        monDamier.bas()
+                        direction = true
+                        isVertical= true
+
                     } else if (event.angleDelta.y > 0) {  // Scrolling up
-                        if (lastMove == "Up" & wheelLocked) return;
-                        lastMove = "Up";
-                        if (monDamier.bas()) monDamier.suivant();
+                        monDamier.haut()
+                        direction = false
+                        isVertical= true
                     }
 
                     if (event.angleDelta.x < 0) {  // Scrolling right
-                        if (lastMove == "Right" & wheelLocked) return;
-                        lastMove = "Right";
-                        if (monDamier.gauche()) monDamier.suivant();
+                        monDamier.droite()
+                        direction = true
+                        isVertical= false
                     } else if (event.angleDelta.x > 0) {  // Scrolling left
-                        if (lastMove == "Left" & wheelLocked) return;
-                        lastMove = "Left";
-                        if (monDamier.droite()) monDamier.suivant();
+                        monDamier.gauche()
+                        direction = false
+                        isVertical= false
                     }
+
+                    grille.isLocked = true;
+                    delayTimer.restart();  // Démarre le délai
 
                     // Vérifier si la partie est perdue après chaque mouvement
                     if (monDamier.perdu()) {
                         perdu = true;  // Mettre à jour l'état si perdu
                     }
 
-                    event.accepted = true;  // Prevent event propagation
-                }
+                    event.accepted = true;  // Empeche la propagation de l'event
+                }}
+        }
 
-            Timer {
-                id: delayTimer
-                interval: 600  // Temps d'attente en millisecondes (400 ms)
-                onTriggered: parent.wheelLocked = false
-            }
+        Timer {
+            id: delayTimer
+            interval: 200  // Temps d'attente en millisecondes
+            onTriggered: grille.isLocked = false
         }
 
     }

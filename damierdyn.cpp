@@ -76,17 +76,41 @@ void DamierDyn::suivant() {
         j = distribCol(gen);
     } while (tab[i][j] != 0);
     tab[i][j] = val;
+
+    // Mise à jour des coordonnées de la dernière tuile ajoutée
+    lastAddedRow = i;
+    lastAddedCol = j;
+
+    // Notifier QML que la table et la dernière tuile ajoutée ont changé
     emit tableChangee();
+    emit lastAddedTileChange();
+}
+
+QVariantList DamierDyn::lireLastAddedTile() {
+    return QVariantList{lastAddedRow, lastAddedCol};
 }
 
 bool DamierDyn::bas() {
     bool modif = false;
     sauvegarde();
+    m_deplacement = QVariantList(nombre_colonnes*nombre_lignes, 0);
+
     for (int j = 0; j < nombre_colonnes; j++) {
         bool* fusionne = new bool[nombre_lignes]();
 
+        // Add the last line to the QML list
+        if (tab[(nombre_lignes-1)][j] == 0) {
+            m_deplacement[(nombre_lignes - 1)*nombre_lignes+j] = QVariant(-1);
+        } else {
+            m_deplacement[(nombre_lignes - 1)*nombre_lignes+j] = QVariant(nombre_lignes-1);
+        }
+
         for (int i = nombre_lignes - 2; i >= 0; i--) {
-            if (tab[i][j] == 0) continue;
+            if (tab[i][j] == 0) {
+                m_deplacement[i*nombre_lignes+j] = QVariant(-1);
+                continue;}
+
+
 
             int nouvelle_pos = i;
             while (nouvelle_pos + 1 < nombre_lignes && tab[nouvelle_pos + 1][j] == 0) {
@@ -95,6 +119,7 @@ bool DamierDyn::bas() {
 
             if (nouvelle_pos + 1 < nombre_lignes && tab[nouvelle_pos + 1][j] == tab[i][j] && !fusionne[nouvelle_pos + 1]) {
                 tab[nouvelle_pos + 1][j] *= 2;
+                m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos + 1);
                 tab[i][j] = 0;
                 fusionne[nouvelle_pos + 1] = true;
                 score += tab[nouvelle_pos + 1][j];
@@ -103,25 +128,39 @@ bool DamierDyn::bas() {
             }
             else if (nouvelle_pos != i) {
                 tab[nouvelle_pos][j] = tab[i][j];
+                m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);
                 tab[i][j] = 0;
                 modif = true;
             }
+            else{m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);}
+
         }
 
         delete[] fusionne;
     }
-    if (modif) emit tableChangee();
+    if (modif) emit deplace();
     return(modif);
 }
 
 bool DamierDyn::haut() {
     bool modif = false;
     sauvegarde();
+    m_deplacement = QVariantList(nombre_colonnes*nombre_lignes, 0);
+
     for (int j = 0; j < nombre_colonnes; j++) {
         bool* fusionne = new bool[nombre_lignes](); // Suivi des fusions
 
+        // Ajout de la première ligne à la liste QML.
+        if (tab[0][j] == 0) {
+            m_deplacement[j] = QVariant(-1);
+        } else {
+            m_deplacement[j] = QVariant(0);
+        }
+
         for (int i = 1; i < nombre_lignes; i++) { // On commence à la deuxième ligne
-            if (tab[i][j] == 0) continue; // Ignore les cases vides
+            if (tab[i][j] == 0){
+                m_deplacement[i*nombre_lignes+j] = QVariant(-1);
+                continue;} // Ignore les cases vides
 
             int nouvelle_pos = i;
             while (nouvelle_pos - 1 >= 0 && tab[nouvelle_pos - 1][j] == 0) {
@@ -131,6 +170,7 @@ bool DamierDyn::haut() {
             if (nouvelle_pos - 1 >= 0 && tab[nouvelle_pos - 1][j] == tab[i][j] && !fusionne[nouvelle_pos - 1]) {
                 // On peut fusionner si la case trouvée a la même valeur que la case traitée et qu'elle n'a pas déjà fusionnée
                 tab[nouvelle_pos - 1][j] *= 2;
+                m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos - 1);
                 tab[i][j] = 0;
                 fusionne[nouvelle_pos - 1] = true; // Marquer la fusion
                 score += tab[nouvelle_pos - 1][j]; // Augmenter le score
@@ -140,33 +180,50 @@ bool DamierDyn::haut() {
             else if (nouvelle_pos != i) {
                 // Si pas de fusion possible, on fait un simple déplacement
                 tab[nouvelle_pos][j] = tab[i][j];
+                m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);
                 tab[i][j] = 0;
                 modif = true;
             }
+            else{m_deplacement[i*nombre_lignes+j]=QVariant(nouvelle_pos);}
+
         }
 
         delete[] fusionne; // Libération de la mémoire
     }
-    if (modif) emit tableChangee();
+    if (modif) emit deplace();
     return(modif);
 }
 
 bool DamierDyn::gauche() {
     bool modif = false;
     sauvegarde();
+    m_deplacement = QVariantList(nombre_colonnes*nombre_lignes, 0);
+
     for (int i = 0; i < nombre_lignes; i++) {
         bool* fusionne = new bool[nombre_colonnes]();
 
+        // Add the first column to the QML list
+        if (tab[i][0] == 0) {
+            m_deplacement[i*nombre_lignes] = QVariant(-1);
+        } else {
+            m_deplacement[i*nombre_lignes] = QVariant(0);
+        }
+
         for (int j = 1; j < nombre_colonnes; j++) {
-            if (tab[i][j] == 0) continue;
+
+            if (tab[i][j] == 0){
+                m_deplacement[i*nombre_lignes+j] = QVariant(-1);
+                continue;}
 
             int nouvelle_pos = j;
             while (nouvelle_pos - 1 >= 0 && tab[i][nouvelle_pos - 1] == 0) {
                 nouvelle_pos--;
             }
 
+
             if (nouvelle_pos - 1 >= 0 && tab[i][nouvelle_pos - 1] == tab[i][j] && !fusionne[nouvelle_pos - 1]) {
                 tab[i][nouvelle_pos - 1] *= 2;
+                m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos - 1);
                 tab[i][j] = 0;
                 fusionne[nouvelle_pos - 1] = true;
                 score += tab[i][nouvelle_pos - 1];
@@ -174,25 +231,41 @@ bool DamierDyn::gauche() {
                 modif = true;
             }
             else if (nouvelle_pos != j) {
+                m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);
                 tab[i][nouvelle_pos] = tab[i][j];
                 tab[i][j] = 0;
                 modif = true;
             }
+            else{m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);}
         }
         delete[] fusionne;
+
     }
-    if (modif) emit tableChangee();
+    if (modif) emit deplace();
     return(modif);
+
 }
 
 bool DamierDyn::droite() {
     bool modif = false;
     sauvegarde();
+    m_deplacement = QVariantList(nombre_colonnes*nombre_lignes, 0);
+
     for (int i = 0; i < nombre_lignes; i++) {
         bool* fusionne = new bool[nombre_colonnes]();
 
+        // Add the first column to the QML list
+        if (tab[i][nombre_colonnes-1] == 0) {
+            m_deplacement[i*nombre_lignes+nombre_colonnes-1] = QVariant(-1);
+        } else {
+            m_deplacement[i*nombre_lignes+nombre_colonnes-1] = QVariant(nombre_colonnes-1);
+        }
+
+
         for (int j = nombre_colonnes - 2; j >= 0; j--) {
-            if (tab[i][j] == 0) continue;
+            if (tab[i][j] == 0){
+                m_deplacement[i*nombre_lignes+j] = QVariant(-1);
+                continue;}
 
             int nouvelle_pos = j;
             while (nouvelle_pos + 1 < nombre_colonnes && tab[i][nouvelle_pos + 1] == 0) {
@@ -201,6 +274,7 @@ bool DamierDyn::droite() {
 
             if (nouvelle_pos + 1 < nombre_colonnes && tab[i][nouvelle_pos + 1] == tab[i][j] && !fusionne[nouvelle_pos + 1]) {
                 tab[i][nouvelle_pos + 1] *= 2;
+                m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos + 1);
                 tab[i][j] = 0;
                 fusionne[nouvelle_pos + 1] = true;
                 score += tab[i][nouvelle_pos + 1];
@@ -209,13 +283,16 @@ bool DamierDyn::droite() {
             }
             else if (nouvelle_pos != j) {
                 tab[i][nouvelle_pos] = tab[i][j];
+                m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);
                 tab[i][j] = 0;
                 modif = true;
             }
+            else{m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);}
         }
+
         delete[] fusionne;
     }
-    if (modif) emit tableChangee();
+    if (modif) emit deplace();
     return(modif);
 }
 
