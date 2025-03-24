@@ -168,7 +168,7 @@ ApplicationWindow {
                                   (modelData === 256 && "#edcc61") ||
                                   (modelData === 512 && "#edc850") ||
                                   (modelData === 1024 && "#edc53f") ||
-                                  (modelData === 2048 && "#edc22e") ||
+                                  (modelData >= 2048 && "#edc22e") ||
                                   "#cdc1b4"}
 
             Rectangle {
@@ -275,77 +275,72 @@ ApplicationWindow {
 
         // Detection du swippe avec 2 doigts
         MouseArea {
+
             id: wheelHandler
             anchors.fill: parent
-            property bool wheelLocked: false  // Empêche l'appel multiple immédiat
-            property string lastMove: "None"  // si le même mouvement est répété
+            property bool wheelLocked: false
 
-                // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
-                onWheel: function(event) {if (!grille.isLocked){
-                    if (event.angleDelta.y > 0) {  // Scrolling down
-                        if (lastMove === "Down" && wheelLocked) return;
-                        lastMove = "Down";
-                        monDamier.bas()
-                        direction = true
-                        isVertical= true
-                        retour_possible = true
+            // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
+            onWheel: function(event) {
+                if (!wheelLocked){
+                if (event.angleDelta.y > 2) {  // Scrolling down
+                    monDamier.bas()
+                    direction = true
+                    isVertical= true
+                    retour_possible = true
 
-                    } else if (event.angleDelta.y < 0) {  // Scrolling up
-                        if (lastMove === "Up" && wheelLocked) return;
-                        lastMove = "Up";
-                        monDamier.haut()
-                        direction = false
-                        isVertical= true
-                        retour_possible = true
+                } else if (event.angleDelta.y < -2) {  // Scrolling up
+                    monDamier.haut()
+                    direction = false
+                    isVertical= true
+                    retour_possible = true
 
-                    }
-
-                    if (event.angleDelta.x > 0) {  // Scrolling right
-                        if (lastMove === "Right" && wheelLocked) return;
-                        lastMove = "Right";
-                        monDamier.droite()
-                        direction = true
-                        isVertical= false
-                        retour_possible = true
-
-                    } else if (event.angleDelta.x < 0) {  // Scrolling left
-                        if (lastMove === "Left" && wheelLocked) return;
-                        lastMove = "Left";
-                        monDamier.gauche()
-                        direction = false
-                        isVertical= false
-                        retour_possible = true
-
-                    }
-                    wheelLocked = true;
-                    delayTimer_Wheel.restart();  // Démarre le délai
-
-                    grille.isLocked = true;
-                    delayTimer.restart();  // Démarre le délai
-                    }
-
-                    // Vérifier si la partie est perdue après chaque mouvement
-                    if (monDamier.perdu()) {
-                        perdu = true;  // Mettre à jour l'état si perdu
-                    }
-
-                    event.accepted = true;  // Empeche la propagation de l'event
                 }
 
-                Timer {
-                    id: delayTimer_Wheel
-                    interval: 800  // Temps d'attente en millisecondes
-                    onTriggered: wheelHandler.wheelLocked = false
-                    }
+                if (event.angleDelta.x > 2) {  // Scrolling right
+                    monDamier.droite()
+                    direction = true
+                    isVertical= false
+                    retour_possible = true
 
+                } else if (event.angleDelta.x < -2) {  // Scrolling left
+                    monDamier.gauche()
+                    direction = false
+                    isVertical= false
+                    retour_possible = true
+
+                }
+                wheelLocked = true;
+                wheelUnlockTimer.restart();
+                }
+
+                // Vérifier si la partie est perdue après chaque mouvement
+                if (monDamier.perdu()) {
+                    perdu = true;  // Mettre à jour l'état si perdu
+                }
+
+                event.accepted = true;  // Empeche la propagation de l'event
+            }
+            Timer {
+                id: wheelUnlockTimer
+                interval: 600  // Temps en millisecondes (ici 200ms)
+                running: false
+                repeat: false  // Ne se répète pas
+                onTriggered: {
+                    parent.wheelLocked = false;
+                }
+            }
         }
 
         Timer {
             id: delayTimer
-            interval: 200  // Temps d'attente en millisecondes
-            onTriggered: grille.isLocked = false
+            interval: 200  // Temps en millisecondes (ici 200ms)
+            running: false
+            repeat: false  // Ne se répète pas
+            onTriggered: {
+                grille.isLocked = false;
+            }
         }
-
     }
 
 
