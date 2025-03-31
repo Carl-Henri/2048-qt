@@ -30,7 +30,7 @@ ApplicationWindow {
         }
     }
 
-    // Conteneur pour aligner les boutons
+    // Rectangle contenant les boutons des diverses fonctionnalités
     Rectangle {
         id:buttonRow
         color: "#faf8ef"
@@ -59,7 +59,7 @@ ApplicationWindow {
                     grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
                 }
             }
-
+            // Bouton de retour arrière
             Button {
                 text: "Retour arrière"
                 width: parent.width / 3 - 10
@@ -68,14 +68,14 @@ ApplicationWindow {
                 font.pixelSize: 18
                 enabled: retour_possible
                 onClicked: {
-                    monDamier.retour_arriere();  // Fonction à définir dans DamierDyn pour réinitialiser
+                    monDamier.retour_arriere();
                     perdu = false
-                    grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+                    grille.forceActiveFocus();
                     retour_possible = false;
                 }
             }
 
-            // Bouton pour choisir le mode de jeu
+            // Bouton pour choisir le mode de jeu (i.e. la taille du damier)
             Button {
                 id: modeButton
                 text: "Choisir le mode"
@@ -84,8 +84,8 @@ ApplicationWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: 18
                 onClicked: {
-                    modeMenu.open(); // Afficher le menu pour choisir le mode de jeu
-                    grille.forceActiveFocus();  // Force la focalisation sur l'élément GridView
+                    modeMenu.open();
+                    grille.forceActiveFocus();
                 }
             }
         }
@@ -97,11 +97,11 @@ ApplicationWindow {
         anchors.top: buttonRow.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: parent.bottom  // S'assure que la grille occupe l'espace restant
+        anchors.bottom: parent.bottom
         cellWidth: width / tailleDamier
         cellHeight: width / tailleDamier
         model: monDamier.table
-        property bool isLocked: false  // Empêche l'appel multiple immédiat
+        property bool isLocked: false
 
 
         Connections {
@@ -132,7 +132,7 @@ ApplicationWindow {
             height: grille.cellHeight
             color: "#bbae9e"
 
-            // Store position information
+            // Information de position
             property int row: Math.floor(index / tailleDamier)
             property int column: index % tailleDamier
             property point gridPosition: Qt.point(column, row)
@@ -269,7 +269,7 @@ ApplicationWindow {
             }
         }
 
-        // Detection du swippe avec 2 doigts
+        // Détection du swipe avec 2 doigts
         MouseArea {
 
             id: wheelHandler
@@ -340,17 +340,17 @@ ApplicationWindow {
     Menu {
         id: modeMenu
         width: 180
-        height: 220  // Hauteur totale du menu
-        anchors.centerIn: parent  // Centrer le menu dans l'écran
+        height: 220
+        anchors.centerIn: parent
 
         // Conteneur pour les boutons
         Column {
             id: buttonContainer
             anchors.fill: parent
             anchors.top: parent.top
-            spacing: 10  // Espacement entre les boutons
-            padding: 10  // Marges autour des boutons
-            property int buttonCount: 6  // Nombre total de boutons
+            spacing: 10
+            padding: 10
+            property int buttonCount: 6
 
             Repeater {
                 model: ["3x3", "4x4", "5x5", "6x6","7x7","8x8"]
@@ -402,7 +402,7 @@ ApplicationWindow {
         }
 
         onAccepted: {
-            // Réinitialiser le jeu si nécessaire
+            // Réinitialiser le jeu
             monDamier.reinitialiser();
             perdu = false;  // Réinitialiser l'état de la partie
         }

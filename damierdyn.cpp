@@ -5,13 +5,13 @@
 #include <iomanip>
 using namespace std;
 
-// Constructeurs
-
+// Constructeur
 DamierDyn::DamierDyn(int n, int m, int val1, int val2) {
     redim(n,m);
     Init(val1, val2);
 }
 
+// Fonction qui met les valeurs de tab à 0 et deux tuiles au hasard à 2
 void DamierDyn::Init(int val1, int val2) {
 
     random_device rd;
@@ -40,17 +40,15 @@ void DamierDyn::Init(int val1, int val2) {
     emit tableChangee();
 }
 
+// Fonction pour réinitialiser le jeu
 void DamierDyn::reinitialiser() {
     Init();
     score = 0;
     emit scoreChange();
 }
 
-void DamierDyn::Set(int i, int j, int val) {
-    if (i>=0 && i < nombre_lignes && j>=0 && j<nombre_colonnes)
-        tab[i][j] = val;
-}
-
+// Fonction exécutée si le damier a changé suite à une action du joueur
+// Fait apparaître une tuile de valeur 2 (avec une probabilité de 0.9), sinon 4 sur une tuile libre choisie au hasard
 void DamierDyn::suivant() {
     random_device rd;
     mt19937 gen(rd());
@@ -83,6 +81,7 @@ QVariantList DamierDyn::lireLastAddedTile() {
     return QVariantList{lastAddedRow, lastAddedCol};
 }
 
+// Définition des actions exécutables par le joueur : haut, bas, gauche, droite
 bool DamierDyn::bas() {
     bool modif = false;
     sauvegarde();
@@ -91,7 +90,6 @@ bool DamierDyn::bas() {
     for (int j = 0; j < nombre_colonnes; j++) {
         bool* fusionne = new bool[nombre_lignes]();
 
-        // Add the last line to the QML list
         if (tab[(nombre_lignes-1)][j] == 0) {
             m_deplacement[(nombre_lignes - 1)*nombre_lignes+j] = QVariant(-1);
         } else {
@@ -289,6 +287,7 @@ bool DamierDyn::droite() {
     return(modif);
 }
 
+// Fonction qui renvoie true si la partie est perdue et false sinon
 bool DamierDyn::perdu() {
     bool perdu = true;
     // Si le damier n'est pas plein ou qu'il a y deux cases adjacentes de même valeur,
@@ -317,6 +316,7 @@ bool DamierDyn::perdu() {
     return perdu;
 }
 
+// Fonction qui renvoie une QVariantList contenant les valeurs du damier
 QVariantList DamierDyn::lireTable() {
     QVariantList res;
     for (int i = 0; i<nombre_lignes;i++) {
@@ -329,6 +329,7 @@ QVariantList DamierDyn::lireTable() {
     return res;
 }
 
+// Fonction pour annuler une action prise lors d'une partie
 void DamierDyn::retour_arriere() {
     if (precedent_tab != 0) {
         for (int i = 0; i<nombre_lignes;i++) {
@@ -357,6 +358,7 @@ DamierDyn::~DamierDyn() {
     }
 }
 
+// Fonction permettant de redimensionner ou encore d'initialiser le damier
 void DamierDyn::redim(int n,int m) {
     if (tab !=0) {
         for (int i=0;i<nombre_lignes;i++)
@@ -381,6 +383,7 @@ void DamierDyn::redim(int n,int m) {
     };
 }
 
+// Sauvegarde de l'état  du damier à l'aide du double pointeur precedent_tab
 void DamierDyn::sauvegarde() {
     if (precedent_tab !=0) {
         for (int i=0;i<nombre_lignes;i++)
