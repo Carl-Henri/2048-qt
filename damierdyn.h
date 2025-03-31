@@ -9,8 +9,10 @@ using namespace std;
 
 class DamierDyn : public QObject {
     Q_OBJECT
+    // On communique le damier sous forme de QVariantList à l'interface
     Q_PROPERTY(QVariantList table READ lireTable NOTIFY tableChangee() )
     Q_PROPERTY(QVariantList deplacement READ getDeplacement NOTIFY deplace )
+    // On communique le score
     Q_PROPERTY(QString scoreQML READ lireScore NOTIFY scoreChange() )
     Q_PROPERTY(QVariantList lastAddedTile READ lireLastAddedTile NOTIFY lastAddedTileChange())
 
@@ -22,15 +24,22 @@ public:
     DamierDyn(int n,int m,int val1=2, int val2=2);
     void Init(int val1 = 2, int val2 = 2);
     Q_INVOKABLE void redim(int n, int m);
+
+    // Méthodes pour gérer le jeu
     Q_INVOKABLE void reinitialiser();
     Q_INVOKABLE void suivant();
+    Q_INVOKABLE bool perdu();
+
+    // Actions possibles
     Q_INVOKABLE bool bas();
     Q_INVOKABLE bool haut();
     Q_INVOKABLE bool gauche();
     Q_INVOKABLE bool droite();
-    Q_INVOKABLE bool perdu();
+
+    // Méthodes pour gérer la fonctionnalité de retour arrière
     void sauvegarde();
     Q_INVOKABLE void retour_arriere();
+
     ~DamierDyn();
     QVariantList lireTable();
     QString lireScore();
@@ -44,7 +53,6 @@ public:
 
     friend ostream& operator<<(ostream& os, const DamierDyn& damier);
 
-    void Set(int i, int j, int val);
     DamierDyn& operator=(const DamierDyn& D);
 
 private:
@@ -52,10 +60,14 @@ private:
     int lastAddedCol = -1;
     QVariantList m_deplacement = QVariantList(); // Enregistre les mouvements
 
+    // On fait un tableau dynamique à deux dimensions pour représenter le damier du 2048
     int nombre_lignes;
     int nombre_colonnes;
-    int score = 0;
     int** tab = 0;
+
+    int score = 0;
+
+    // Pour la fonctionnalité "retour arrière"
     int** precedent_tab = 0;
     int precedent_score = 0;
 
