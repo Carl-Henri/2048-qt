@@ -233,25 +233,28 @@ ApplicationWindow {
 
         Keys.onPressed: function(event) {
             if (!grille.isLocked){
-                retour_possible = true
             switch (event.key) {
                 case Qt.Key_Up:
-                    monDamier.haut()
+                    if (monDamier.haut())
+                        retour_possible = true
                     isDownOrRight = false
                     isVertical= true
                     break;
                 case Qt.Key_Down:
-                    monDamier.bas()
+                    if (monDamier.bas())
+                        retour_possible = true
                     isDownOrRight = true
                     isVertical= true
                     break;
                 case Qt.Key_Left:
-                    monDamier.gauche()
+                    if (monDamier.gauche())
+                        retour_possible = true
                     isDownOrRight = false
                     isVertical= false
                     break;
                 case Qt.Key_Right:
-                    monDamier.droite()
+                    if (monDamier.droite())
+                        retour_possible = true
                     isDownOrRight = true
                     isVertical= false
                     break;
@@ -279,25 +282,24 @@ ApplicationWindow {
             // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
             onWheel: function(event) {
                 if (!wheelLocked){
-                retour_possible = true
                 if (event.angleDelta.y > 2) {          // Scrolling down
-                    monDamier.bas()
+                    if (monDamier.bas()) retour_possible = true
                     isDownOrRight = true
                     isVertical= true
 
                 } else if (event.angleDelta.y < -2) {  // Scrolling up
-                    monDamier.haut()
+                    if (monDamier.haut()) retour_possible = true
                     isDownOrRight = false
                     isVertical= true
                 }
 
                 if (event.angleDelta.x > 2) {          // Scrolling right
-                    monDamier.droite()
+                    if (monDamier.droite()) retour_possible = true
                     isDownOrRight = true
                     isVertical= false
 
                 } else if (event.angleDelta.x < -2) {  // Scrolling left
-                    monDamier.gauche()
+                    if (monDamier.gauche()) retour_possible = true
                     isDownOrRight = false
                     isVertical= false
 

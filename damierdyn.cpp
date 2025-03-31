@@ -84,7 +84,7 @@ QVariantList DamierDyn::lireLastAddedTile() {
 // Définition des actions exécutables par le joueur : haut, bas, gauche, droite
 bool DamierDyn::bas() {
     bool modif = false;
-    sauvegarde();
+    bool sauver = true;
     m_deplacement = QVariantList(nombre_colonnes*nombre_lignes, 0);
 
     for (int j = 0; j < nombre_colonnes; j++) {
@@ -109,6 +109,7 @@ bool DamierDyn::bas() {
             }
 
             if (nouvelle_pos + 1 < nombre_lignes && tab[nouvelle_pos + 1][j] == tab[i][j] && !fusionne[nouvelle_pos + 1]) {
+                if (sauver) {sauvegarde(); sauver = false;};
                 tab[nouvelle_pos + 1][j] *= 2;
                 m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos + 1);
                 tab[i][j] = 0;
@@ -118,6 +119,7 @@ bool DamierDyn::bas() {
                 modif = true;
             }
             else if (nouvelle_pos != i) {
+                if (sauver) {sauvegarde(); sauver = false;};
                 tab[nouvelle_pos][j] = tab[i][j];
                 m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);
                 tab[i][j] = 0;
@@ -135,7 +137,7 @@ bool DamierDyn::bas() {
 
 bool DamierDyn::haut() {
     bool modif = false;
-    sauvegarde();
+    bool sauver = true;
     m_deplacement = QVariantList(nombre_colonnes*nombre_lignes, 0);
 
     for (int j = 0; j < nombre_colonnes; j++) {
@@ -160,6 +162,7 @@ bool DamierDyn::haut() {
 
             if (nouvelle_pos - 1 >= 0 && tab[nouvelle_pos - 1][j] == tab[i][j] && !fusionne[nouvelle_pos - 1]) {
                 // On peut fusionner si la case trouvée a la même valeur que la case traitée et qu'elle n'a pas déjà fusionnée
+                if (sauver) {sauvegarde(); sauver = false;};
                 tab[nouvelle_pos - 1][j] *= 2;
                 m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos - 1);
                 tab[i][j] = 0;
@@ -170,6 +173,7 @@ bool DamierDyn::haut() {
             }
             else if (nouvelle_pos != i) {
                 // Si pas de fusion possible, on fait un simple déplacement
+                if (sauver) {sauvegarde(); sauver = false;};
                 tab[nouvelle_pos][j] = tab[i][j];
                 m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);
                 tab[i][j] = 0;
@@ -187,7 +191,7 @@ bool DamierDyn::haut() {
 
 bool DamierDyn::gauche() {
     bool modif = false;
-    sauvegarde();
+    bool sauver = true;
     m_deplacement = QVariantList(nombre_colonnes*nombre_lignes, 0);
 
     for (int i = 0; i < nombre_lignes; i++) {
@@ -213,6 +217,7 @@ bool DamierDyn::gauche() {
 
 
             if (nouvelle_pos - 1 >= 0 && tab[i][nouvelle_pos - 1] == tab[i][j] && !fusionne[nouvelle_pos - 1]) {
+                if (sauver) {sauvegarde(); sauver = false;};
                 tab[i][nouvelle_pos - 1] *= 2;
                 m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos - 1);
                 tab[i][j] = 0;
@@ -222,6 +227,7 @@ bool DamierDyn::gauche() {
                 modif = true;
             }
             else if (nouvelle_pos != j) {
+                if (sauver) {sauvegarde(); sauver = false;};
                 m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);
                 tab[i][nouvelle_pos] = tab[i][j];
                 tab[i][j] = 0;
@@ -239,7 +245,7 @@ bool DamierDyn::gauche() {
 
 bool DamierDyn::droite() {
     bool modif = false;
-    sauvegarde();
+    bool sauver = true;
     m_deplacement = QVariantList(nombre_colonnes*nombre_lignes, 0);
 
     for (int i = 0; i < nombre_lignes; i++) {
@@ -264,6 +270,7 @@ bool DamierDyn::droite() {
             }
 
             if (nouvelle_pos + 1 < nombre_colonnes && tab[i][nouvelle_pos + 1] == tab[i][j] && !fusionne[nouvelle_pos + 1]) {
+                if (sauver) {sauvegarde(); sauver = false;};
                 tab[i][nouvelle_pos + 1] *= 2;
                 m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos + 1);
                 tab[i][j] = 0;
@@ -273,6 +280,7 @@ bool DamierDyn::droite() {
                 modif = true;
             }
             else if (nouvelle_pos != j) {
+                if (sauver) {sauvegarde(); sauver = false;};
                 tab[i][nouvelle_pos] = tab[i][j];
                 m_deplacement[i*nombre_lignes+j] = QVariant(nouvelle_pos);
                 tab[i][j] = 0;
