@@ -8,10 +8,9 @@ ApplicationWindow {
     height: 700
     title: "2048"
     property int tailleDamier: 4
-    property bool perdu: false  // Ajout d'une propriété pour suivre l'état du jeu
-    property bool direction: true
-    property bool isVertical: false
-    property bool locked: false
+    property bool perdu: false         // Ajout d'une propriété pour suivre l'état du jeu
+    property bool isDownOrRight: true  // Utilisé pour controler quelle sont les tuilles à afficher devant lors de l'animation
+    property bool isVertical: false    // Controle la direction de l'animation
     property bool retour_possible: false
 
     // Affichage du score
@@ -45,6 +44,7 @@ ApplicationWindow {
             anchors.bottom: parent.bottom
             anchors.centerIn: parent
             width: parent.width - 40
+
             // Bouton de redémarrage
             Button {
                 text: "Redémarrer"
@@ -137,10 +137,10 @@ ApplicationWindow {
             property int column: index % tailleDamier
             property point gridPosition: Qt.point(column, row)
 
-            z: direction ? -row-column : row+column // Les tuilles affichées devant changent selon la direction de l'action
+            z: isDownOrRight ? -row-column : row+column // Les tuilles affichées devant changent selon la direction de l'action
 
 
-            // Pour l'animation
+            // Pour l'animation: newposition est la nouvelle ligne / colonne qu'elle va occuper après l'animation
             property int newPosition: -1
 
             function updatePosition() {
@@ -156,7 +156,7 @@ ApplicationWindow {
                     }
                 }
 
-
+            // Renvoie la couleur correspondant à la valeur de la tuile.
             function getColor() { return (modelData === 0 && "#cdc1b5") ||
                                   (modelData === 2 && "#eee4da") ||
                                   (modelData === 4 && "#ece0c8") ||
@@ -205,7 +205,7 @@ ApplicationWindow {
                     id: moveAnimation
                 NumberAnimation {
                     target: tile
-                    property: isVertical ? "y" : "x"
+                    property: isVertical ? "y" : "x" // si le mouvement est vertical on vouge selon y sinon selon x
                     from: 0
                     to: isVertical
                         ? (cellBackground.newPosition - cellBackground.row) * grille.cellHeight
@@ -233,30 +233,27 @@ ApplicationWindow {
 
         Keys.onPressed: function(event) {
             if (!grille.isLocked){
+                retour_possible = true
             switch (event.key) {
                 case Qt.Key_Up:
                     monDamier.haut()
-                    direction = false
+                    isDownOrRight = false
                     isVertical= true
-                    retour_possible = true
                     break;
                 case Qt.Key_Down:
                     monDamier.bas()
-                    direction = true
+                    isDownOrRight = true
                     isVertical= true
-                    retour_possible = true
                     break;
                 case Qt.Key_Left:
                     monDamier.gauche()
-                    direction = false
+                    isDownOrRight = false
                     isVertical= false
-                    retour_possible = true
                     break;
                 case Qt.Key_Right:
                     monDamier.droite()
-                    direction = true
+                    isDownOrRight = true
                     isVertical= false
-                    retour_possible = true
                     break;
                 default:
                     break;
@@ -265,7 +262,6 @@ ApplicationWindow {
             delayTimer.restart()  // Démarre le délai
 
             }
-
 
             // Vérifier si la partie est perdue après chaque mouvement
             if (monDamier.perdu()) {
@@ -278,36 +274,32 @@ ApplicationWindow {
 
             id: wheelHandler
             anchors.fill: parent
-            property bool wheelLocked: false
+            property bool wheelLocked: false // Bloque les appels avec le pad
 
             // Le défilement à 2 doigts sur le tracpad est détecté par l'ordinateur comme la molette de la souris (mais avec 2 directions x et y)
             onWheel: function(event) {
                 if (!wheelLocked){
-                if (event.angleDelta.y > 2) {  // Scrolling down
+                retour_possible = true
+                if (event.angleDelta.y > 2) {          // Scrolling down
                     monDamier.bas()
-                    direction = true
+                    isDownOrRight = true
                     isVertical= true
-                    retour_possible = true
 
                 } else if (event.angleDelta.y < -2) {  // Scrolling up
                     monDamier.haut()
-                    direction = false
+                    isDownOrRight = false
                     isVertical= true
-                    retour_possible = true
-
                 }
 
-                if (event.angleDelta.x > 2) {  // Scrolling right
+                if (event.angleDelta.x > 2) {          // Scrolling right
                     monDamier.droite()
-                    direction = true
+                    isDownOrRight = true
                     isVertical= false
-                    retour_possible = true
 
                 } else if (event.angleDelta.x < -2) {  // Scrolling left
                     monDamier.gauche()
-                    direction = false
+                    isDownOrRight = false
                     isVertical= false
-                    retour_possible = true
 
                 }
                 wheelLocked = true;
@@ -323,7 +315,7 @@ ApplicationWindow {
             }
             Timer {
                 id: wheelUnlockTimer
-                interval: 600  // Temps en millisecondes (ici 200ms)
+                interval: 600  // Temps en millisecondes (ici 600ms)
                 running: false
                 repeat: false  // Ne se répète pas
                 onTriggered: {
