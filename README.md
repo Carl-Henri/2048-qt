@@ -4,6 +4,10 @@ A fully functional implementation of the **2048 puzzle game**, built with C++ fo
 
 Developed as a two-person team project at **Centrale Lyon** (2023–2024).
 
+## Download
+
+[**Download for Windows (.zip)**](https://github.com/Carl-Henri/2048-qt/releases/latest) — no Qt installation required, just unzip and run.
+
 ## Gameplay
 
 The classic 2048 rules: slide tiles in four directions to merge identical values and reach the 2048 tile.
