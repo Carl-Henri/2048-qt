@@ -1,0 +1,62 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt 6.8.2 (MinGW)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.2'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_mingw'
+          tools: 'tools_mingw1310'
+          add-tools-to-path: true
+
+      - name: Add MinGW to PATH
+        run: |
+          $mingw = Get-ChildItem "$env:IQTA_TOOLS" -Recurse -Filter "gcc.exe" |
+            Select-Object -First 1 | Split-Path
+          echo $mingw >> $env:GITHUB_PATH
+
+      - name: Configure
+        run: cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Package with windeployqt
+        run: |
+          New-Item -ItemType Directory -Path release
+          Copy-Item build\appProjet_2048.exe release\
+          windeployqt --qmldir . --release release\appProjet_2048.exe
+
+      - name: Zip
+        run: Compress-Archive -Path release\* -DestinationPath 2048-qt-windows.zip
+
+      - name: Upload artifact (all builds)
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2048-qt-windows
+          path: 2048-qt-windows.zip
+          retention-days: 30
+
+      - name: Create GitHub Release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: 2048-qt-windows.zip
+          generate_release_notes: true
