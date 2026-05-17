@@ -1,15 +1,38 @@
-# Projet de jeu 2048 : C++ pour le backend et Qml pour l'interface graphique
+# 2048 — C++ / Qt QML
 
-# Développeurs
- GUILHAUMON Clément \
- GEGOUT Carl-Henri
+A fully functional implementation of the **2048 puzzle game**, built with C++ for the game logic and QML (Qt Quick) for the graphical interface.
 
-# Le jeu
-Nous avons utilisé les règles classiques du 2048.
-L'utilisateur peut utiliser les flèches directionnelles de son clavier ou le touchpad de son ordinateur portable
-avec deux doigts pour fusionner les tuiles vers le haut, le bas, la gauche ou la droite. 
+Developed as a two-person team project at **Centrale Lyon** (2023–2024).
 
-# Fonctionnalités supplémentaires
-L'utilisateur peut choisir la taille de la grille avec le bouton "Choisir le mode". \
-L'utilisateur peut annuler sa dernière action avec le bouton "Retour arrière". \
-L'utilisateur peut redémarrer la partie avec le bouton "Redémarrer". 
+## Gameplay
+
+The classic 2048 rules: slide tiles in four directions to merge identical values and reach the 2048 tile.
+
+## Features
+
+- **Configurable grid size** — choose between different board dimensions before starting
+- **Touchpad support** — two-finger swipe on laptop trackpads, in addition to arrow keys
+- **Undo** — revert the last move
+- **Restart** — reset the board at any time
+
+## Tech Stack
+
+- **C++** — game engine (`DamierDyn` class handles board state, merges, and move logic)
+- **QML / Qt Quick** — declarative UI with smooth tile animations
+- **CMake** — build system
+
+## Build & Run
+
+Requires Qt 6.8+ with Qt Quick.
+
+```bash
+cmake -B build
+cmake --build build
+./build/Projet_2048
+```
+
+Or open `CMakeLists.txt` directly in Qt Creator and hit Run.
+
+## Team
+
+Carl-Henri Gegout · Clément Guilhaumon
