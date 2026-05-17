@@ -6,7 +6,7 @@ Developed as a two-person team project at **Centrale Lyon** (2023–2024).
 
 ## Download
 
-[**Download for Windows (.zip)**](https://github.com/Carl-Henri/2048-qt/releases/latest) — no Qt installation required, just unzip and run.
+[**Download for Windows (.zip)**](https://github.com/Carl-Henri/2048-qt/releases/latest) — no Qt installation required. Unzip and run `appProjet_2048.exe`.
 
 ## Gameplay
 
